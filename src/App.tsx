@@ -63,7 +63,7 @@ function App() {
           className="container flex flex-col items-center gap-10
          mt-10"
         >
-          <h1 className="text-3xl">Pick Users</h1>
+          <h1 className="text-4xl font-bold text-blue-600">Pick Users</h1>
           <ChipAutocomplete users={users} />
         </div>
       </div>

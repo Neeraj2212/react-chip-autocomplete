@@ -3,13 +3,16 @@ import { User } from "../types";
 interface ChipProps {
   user: User;
   onRemove: (item: User) => void;
+  isHighlighted: boolean;
 }
 
-function Chip({ user, onRemove }: ChipProps) {
+function Chip({ user, onRemove, isHighlighted }: ChipProps) {
   return (
     <div
       key={user.email}
-      className="flex items-center gap-2 pr-2  bg-blue-400 text-white rounded-full"
+      className={`flex items-center gap-2 pr-2 text-white rounded-full ${
+        isHighlighted ? "bg-blue-600" : "bg-blue-400"
+      }`}
     >
       <img
         src={user.image}

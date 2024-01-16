@@ -11,6 +11,7 @@ function ChipAutocomplete({ users }: ChipAutocompleteProps) {
   const [showOptions, setShowOptions] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [focusedOption, setFocusedOption] = useState(0);
+  const [isLastChipHighlighted, setIsLastChipHighlighted] = useState(false);
   const availableItems: User[] = users.filter(
     (user) =>
       !selectedItems.includes(user) &&
@@ -22,10 +23,12 @@ function ChipAutocomplete({ users }: ChipAutocompleteProps) {
     setShowOptions(true);
     setSearchValue("");
     setFocusedOption(0);
+    setIsLastChipHighlighted(false);
   };
 
   const onRemove = (item: User) => {
     setSelectedItems((prev) => prev.filter((i) => i.email !== item.email));
+    setIsLastChipHighlighted(false);
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -45,6 +48,16 @@ function ChipAutocomplete({ users }: ChipAutocompleteProps) {
           onOptionSelect(availableItems[focusedOption]);
         }
         break;
+      case "Backspace":
+        if (searchValue === "") {
+          if (isLastChipHighlighted) {
+            const lastItem = selectedItems[selectedItems.length - 1];
+            onRemove(lastItem);
+          } else {
+            setIsLastChipHighlighted(true);
+          }
+        }
+        break;
       default:
         break;
     }
@@ -52,8 +65,15 @@ function ChipAutocomplete({ users }: ChipAutocompleteProps) {
 
   return (
     <div className="border-b-8  border-blue-400 pb-4 w-full flex flex-wrap gap-2">
-      {selectedItems.map((item) => (
-        <Chip key={item.email} user={item} onRemove={onRemove} />
+      {selectedItems.map((item, index) => (
+        <Chip
+          key={item.email}
+          user={item}
+          onRemove={onRemove}
+          isHighlighted={
+            isLastChipHighlighted && index === selectedItems.length - 1
+          }
+        />
       ))}
       <div
         className="flex-grow relative self-center"
@@ -67,7 +87,10 @@ function ChipAutocomplete({ users }: ChipAutocompleteProps) {
           placeholder="Add New User"
           className="outline-none text-xl w-full h-10"
           value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
+          onChange={(e) => {
+            setSearchValue(e.target.value);
+            setIsLastChipHighlighted(false);
+          }}
           onKeyDown={handleKeyDown}
         />
         {showOptions && availableItems.length > 0 && (
