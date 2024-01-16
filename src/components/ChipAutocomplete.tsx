@@ -8,17 +8,46 @@ interface ChipAutocompleteProps {
 
 function ChipAutocomplete({ users }: ChipAutocompleteProps) {
   const [selectedItems, setSelectedItems] = useState<User[]>([]);
-  const availableItems: User[] = users.filter(
-    (user) => !selectedItems.includes(user)
-  );
   const [showOptions, setShowOptions] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+  const [focusedOption, setFocusedOption] = useState(0);
+  const availableItems: User[] = users.filter(
+    (user) =>
+      !selectedItems.includes(user) &&
+      user.name.toLowerCase().includes(searchValue.toLowerCase())
+  );
 
   const onOptionSelect = (item: User) => {
     setSelectedItems((prev) => [...prev, item]);
+    setShowOptions(true);
+    setSearchValue("");
+    setFocusedOption(0);
   };
 
   const onRemove = (item: User) => {
     setSelectedItems((prev) => prev.filter((i) => i.email !== item.email));
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    switch (event.key) {
+      case "ArrowDown":
+        if (focusedOption < availableItems.length - 1) {
+          setFocusedOption(focusedOption + 1);
+        }
+        break;
+      case "ArrowUp":
+        if (focusedOption > 0) {
+          setFocusedOption(focusedOption - 1);
+        }
+        break;
+      case "Enter":
+        if (availableItems[focusedOption]) {
+          onOptionSelect(availableItems[focusedOption]);
+        }
+        break;
+      default:
+        break;
+    }
   };
 
   return (
@@ -28,6 +57,8 @@ function ChipAutocomplete({ users }: ChipAutocompleteProps) {
       ))}
       <div
         className="flex-grow relative self-center"
+        tabIndex={0}
+        autoFocus={true}
         onFocus={() => setShowOptions(true)}
         onBlur={() => setShowOptions(false)}
       >
@@ -35,14 +66,23 @@ function ChipAutocomplete({ users }: ChipAutocompleteProps) {
           type="text"
           placeholder="Add New User"
           className="outline-none text-xl w-full h-10"
+          value={searchValue}
+          onChange={(e) => setSearchValue(e.target.value)}
+          onKeyDown={handleKeyDown}
         />
         {showOptions && availableItems.length > 0 && (
           <div className="absolute bg-white top-[64px] w-[500px] max-h-[400px] overflow-auto border border-gray-300 rounded-lg shadow-lg">
-            {availableItems.map((item) => (
+            {availableItems.map((item, index) => (
               <div
                 key={item.email}
                 className="flex items-center gap-2 px-2 py-1 hover:bg-gray-200 cursor-pointer"
-                onMouseDown={() => onOptionSelect(item)}
+                style={{
+                  backgroundColor: focusedOption === index ? "#f1f1f1" : "",
+                }}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  onOptionSelect(item);
+                }}
               >
                 <img
                   src={item.image}
